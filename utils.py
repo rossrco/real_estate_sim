@@ -58,3 +58,36 @@ class Mortgage:
         self.remaining_periods -= 1
         self.mortgage_amount -= capital_downpayment_amount
         return payment
+
+
+class StockPurchase:
+    def __init__(self, amount, purchase_price):
+        self.amount = amount
+        self.purchase_price = purchase_price
+        self.current_price = purchase_price
+        self.units = self.amount / self.purchase_price
+        self.value = self.units * self.current_price
+    
+    def update_value(self, current_price):
+        self.current_price = current_price
+        self.value = self.units * self.current_price
+        return self
+    
+    def to_dict(self):
+        return {'invested_amount': self.amount,
+                'purchase_price_stock': self.purchase_price,
+                'value_stock': self.value}
+
+
+class Portfolio:
+    def __init__(self):
+        self.purchases = []
+    
+    def purchase(self, amount, purchase_price):
+        self.purchases.append(StockPurchase(amount, purchase_price))
+        return self
+    
+    def update_values(self, current_price):
+        for purchase in self.purchases:
+            purchase.update_value(current_price)
+        return self
