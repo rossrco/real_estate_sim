@@ -2,7 +2,7 @@ import math
 import collections
 
 
-Payment = collections.namedtuple('Payment', ['fee', 'interest_amount', 'capital_downpayment_amount'])
+Payment = collections.namedtuple('Payment', ['fee', 'interest_amount', 'capital_downpayment'])
 
 
 class Mortgage:
@@ -76,6 +76,7 @@ class StockPurchase:
     def to_dict(self):
         return {'invested_amount': self.amount,
                 'purchase_price_stock': self.purchase_price,
+                'current_price': self.current_price,
                 'value_stock': self.value}
 
 
