@@ -60,6 +60,28 @@ class Mortgage:
         return payment
 
 
+class RealEstate:
+    def __init__(self, purchase_price, mortgage):
+        self.purchase_price = purchase_price
+        self.current_price = purchase_price
+        self.mortgage = mortgage
+        self.history = {'mortgage_amount': [],
+                        'price_index': [],
+                        'current_price': [],
+                        'fee': [],
+                        'interest_amount': [],
+                        'capital_downpayment': []}
+    
+    def tick_month(self, price_index):
+        self.history['mortgage_amount'].append(self.mortgage.mortgage_amount)
+        self.history['price_index'].append(price_index)
+        current_price = self.purchase_price * price_index
+        self.history['current_price'].append(current_price)
+        current_payment = self.mortgage.get_next_payment()._asdict()
+        for key in current_payment:
+            self.history[key].append(current_payment[key])
+
+
 class StockPurchase:
     def __init__(self, amount, purchase_price):
         self.amount = amount
