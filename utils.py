@@ -1,12 +1,20 @@
 import math
 import collections
+import pandas as pd
 
 
-Payment = collections.namedtuple('Payment', ['fee', 'interest_amount', 'capital_downpayment'])
+def get_price_index(year_growth_rate, month):
+    return math.pow(1 + year_growth_rate/12, month)
+
+
+Payment = collections.namedtuple('Payment', ['fee',
+                                             'interest_amount',
+                                             'capital_downpayment'])
 
 
 class Mortgage:
-    def __init__(self, service_fee, interest_rate, mortgage_amount, maturity, n_periods=12):
+    def __init__(self, service_fee, interest_rate, mortgage_amount, maturity,
+                 n_periods=12):
         self.service_fee = service_fee
         self.interest_rate = interest_rate
         self.mortgage_amount = mortgage_amount
@@ -54,7 +62,9 @@ class Mortgage:
     def get_next_payment(self):
         interest_amount = self.get_interest_amount()
         capital_downpayment_amount = self.get_capital_downpayment()
-        payment = Payment(self.service_fee, interest_amount, capital_downpayment_amount)
+        payment = Payment(self.service_fee,
+                          interest_amount,
+                          capital_downpayment_amount)
         self.remaining_periods -= 1
         self.mortgage_amount -= capital_downpayment_amount
         return payment
@@ -114,3 +124,54 @@ class Portfolio:
         for purchase in self.purchases:
             purchase.update_value(current_price)
         return self
+
+
+class Scenario:
+    def __init__(self, real_estate, portfolio, growth_rate_real_estate,
+                 growth_rate_stocks, initial_price_stocks,
+                 mortgage_overpayment_amount, investment_amount, name=None):
+        self.real_estate = real_estate
+        self.portfolio = portfolio
+        self.growth_rate_real_estate = growth_rate_real_estate
+        self.growth_rate_stocks = growth_rate_stocks
+        self.initial_price_stocks = initial_price_stocks
+        self.mortgage_overpayment_amount = mortgage_overpayment_amount
+        self.investment_amount = investment_amount
+        if name is None:
+            self.name = '{}_{}_{}_{}'.format(self.growth_rate_real_estate,
+                                             self.growth_rate_stocks,
+                                             self.mortgage_overpayment_amount,
+                                             self.investment_amount)
+        else:
+            self.name = name
+        self.results = None
+
+    def update_history(self):
+        real_estate_hist = pd.DataFrame(self.real_estate.history)
+        portfolio_purchases = [row.to_dict()
+                               for row in self.portfolio.purchases]
+        portfolio_hist = pd.DataFrame.from_records(portfolio_purchases)
+        self.results = real_estate_hist.join(portfolio_hist,
+                                             lsuffix='_real_est',
+                                             rsuffix='_portf')
+        self.results['scenario_name'] = self.name
+        return self
+
+    def run(self):
+        month = 0
+        maturity = self.real_estate.mortgage.maturity
+        n_periods = self.real_estate.mortgage.n_periods
+        max_periods = maturity * n_periods
+        new_monthly_payment_amount = (self.real_estate.mortgage.monthly_payment
+                                      + self.mortgage_overpayment_amount)
+        self.real_estate\
+            .mortgage.update_monthly_payment_amount(new_monthly_payment_amount)
+        while self.real_estate.mortgage.mortgage_amount > 0 and month <= max_periods:
+            real_estate_price_index = get_price_index(self.growth_rate_real_estate, month)
+            self.real_estate.tick_month(real_estate_price_index)
+            stock_price = (get_price_index(self.growth_rate_stocks, month)
+                           * self.initial_price_stocks)
+            self.portfolio.purchase(self.investment_amount, stock_price)
+            self.portfolio.update_values(stock_price)
+            month += 1
+        self.update_history()
