@@ -155,6 +155,7 @@ class Scenario:
                                              lsuffix='_real_est',
                                              rsuffix='_portf')
         self.results['scenario_name'] = self.name
+        self.results['month'] = [i for i in range(len(self.results))]
         return self
 
     def run(self):
