@@ -99,9 +99,9 @@ class StockPurchase:
     
     def to_dict(self):
         return {'invested_amount': self.amount,
-                'purchase_price_stock': self.purchase_price,
+                'purchase_price_stocks': self.purchase_price,
                 'current_price': self.current_price,
-                'value_stock': self.value}
+                'value_stocks': self.value}
 
 
 class Portfolio:
@@ -136,18 +136,31 @@ class Scenario:
                                              self.investment_amount)
         else:
             self.name = name
-        self.results = None
+        self.history = None
+        self.profit_real_estate = 0,
+        self.profit_stocks = 0
+
+
+    def update_profit(self):
+        self.profit_real_estate = (self.history['current_price_real_est'].iloc[-1]
+                                   - self.history['current_price_real_est'].iloc[0]
+                                   - self.history['interest_amount'].sum())
+        self.profit_stocks = self.history['profit_stocks'].sum()
+
+
 
     def update_history(self):
         real_estate_hist = pd.DataFrame(self.real_estate.history)
         portfolio_purchases = [row.to_dict()
                                for row in self.portfolio.purchases]
         portfolio_hist = pd.DataFrame.from_records(portfolio_purchases)
-        self.results = real_estate_hist.join(portfolio_hist,
+        self.history = real_estate_hist.join(portfolio_hist,
                                              lsuffix='_real_est',
-                                             rsuffix='_stock')
-        self.results['scenario_name'] = self.name
-        self.results['month'] = [i for i in range(len(self.results))]
+                                             rsuffix='_stocks')
+        self.history['scenario_name'] = self.name
+        self.history['month'] = [i for i in range(len(self.history))]
+        self.history['profit_stocks'] = (self.history['value_stocks']
+                                         - self.history['invested_amount'])
         return self
 
     def run(self):
@@ -168,3 +181,4 @@ class Scenario:
             self.portfolio.update_values(stock_price)
             month += 1
         self.update_history()
+        self.update_profit()
