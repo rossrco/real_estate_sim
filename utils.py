@@ -161,6 +161,13 @@ class Scenario:
         self.history['month'] = [i for i in range(len(self.history))]
         self.history['profit_stocks'] = (self.history['value_stocks']
                                          - self.history['invested_amount'])
+        self.history['cumulative_interest_amount'] = self.history['interest_amount'].cumsum()
+        self.history['cumulative_profit_stocks'] = self.history['profit_stocks'].cumsum()
+        self.history['current_profit_real_estate'] =\
+            ([self.history['current_price_real_est'].iloc[i]
+             - self.history['current_price_real_est'].iloc[0]
+             - self.history['cumulative_interest_amount'].iloc[i]
+             for i in range(len(self.history))])
         return self
 
     def run(self):
