@@ -1,6 +1,7 @@
 import math
 import collections
 import pandas as pd
+from IPython.display import clear_output
 
 
 def get_price_index(year_growth_rate, month):
@@ -153,14 +154,18 @@ class Scenario:
         real_estate_hist = pd.DataFrame(self.real_estate.history)
         portfolio_purchases = [row.to_dict()
                                for row in self.portfolio.purchases]
-        portfolio_hist = pd.DataFrame.from_records(portfolio_purchases)
+        portfolio_hist = pd.DataFrame.from_records(portfolio_purchases).drop('invested_amount', axis=1)
         self.history = real_estate_hist.join(portfolio_hist,
                                              lsuffix='_real_est',
                                              rsuffix='_stocks')
         self.history['scenario_name'] = self.name
+        self.history['growth_rate_real_estate'] = self.growth_rate_real_estate
+        self.history['growth_rate_stocks'] = self.growth_rate_stocks
+        self.history['mortgage_overpayment_amount'] = self.mortgage_overpayment_amount
+        self.history['investment_amount'] = self.investment_amount
         self.history['month'] = [i for i in range(len(self.history))]
         self.history['profit_stocks'] = (self.history['value_stocks']
-                                         - self.history['invested_amount'])
+                                         - self.history['investment_amount'])
         self.history['cumulative_interest_amount'] = self.history['interest_amount'].cumsum()
         self.history['cumulative_profit_stocks'] = self.history['profit_stocks'].cumsum()
         self.history['current_profit_real_estate'] =\
@@ -189,3 +194,28 @@ class Scenario:
             month += 1
         self.update_history()
         self.update_profit()
+
+
+class Simulation:
+    def __init__(self, scenarios):
+        self.scenarios = scenarios
+        self.history = pd.DataFrame()
+        self.profit = pd.DataFrame()
+
+    def simulate(self):
+        profit_data = []
+        profit_cols = ['scenario_name', 'profit_real_estate', 'profit_stocks',
+                       'growth_rate_real_estate', 'growth_rate_stocks',
+                       'mortgage_overpayment_amount', 'investment_amount']
+
+        for i, scenario in enumerate(self.scenarios):
+            scenario.run()
+            self.history = self.history.append(scenario.history, ignore_index=True)
+            profit_data.append([scenario.name, scenario.profit_real_estate,
+                                scenario.profit_stocks, scenario.growth_rate_real_estate,
+                                scenario.growth_rate_stocks, scenario.mortgage_overpayment_amount,
+                                scenario.investment_amount])
+            clear_output()
+            print(f'Completed scenario {i}.')
+
+        self.profit = pd.DataFrame(profit_data, columns=profit_cols)
