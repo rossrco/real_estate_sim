@@ -24,3 +24,10 @@ In order to address the challenge of capital allocation in a personal portfolio,
 The distribution of the results of all scenarios is expected to provide a indication for the capital allocation.
 
 # Solution
+We will build a simulation engine that allows us to input a list of scenarios. Each scenario can consist of:
+* Different real estate asset;
+* Different mortgage on the real estate;
+* Different percentages of growth of real estate prices and of stock market prices;
+* Different levels of investment in the real estate asset or in stocks (in the case of the real estate asset, this would translate to overpayment of the mortgage);
+
+We will then run a grid search over all scenarios and analyze the results.
