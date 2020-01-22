@@ -2,7 +2,7 @@
 Simulate the impact of real estate price, currency exchange rates and market development on the profitability of private real estate.
 
 <p align="center">
-  <img src="./img/profit_at_7_prc_growth.png" alt="Real Estate VS Stock Profit At Equal Growth Rates" width="500">
+  <img src="./img/profit_at_7_prc_growth.png" alt="Real Estate VS Stock Profit At Equal Growth Rates" width="640">
 </p>
 
 For the actual run and analysis of the resultsm, start at the [analysis.ipynb](https://github.com/rossrco/real_estate_sim/blob/master/analysis.ipynb) notebook.
