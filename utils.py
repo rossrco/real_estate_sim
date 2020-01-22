@@ -55,12 +55,17 @@ class Mortgage:
         return self
     
     def get_next_payment(self):
-        interest_amount = self.get_interest_amount()
-        capital_downpayment_amount = self.get_capital_downpayment()
-        payment = Payment(interest_amount,
-                          capital_downpayment_amount)
-        self.remaining_periods -= 1
-        self.mortgage_amount -= capital_downpayment_amount
+        if self.mortgage_amount > 0:
+            interest_amount = self.get_interest_amount()
+            capital_downpayment_amount = self.get_capital_downpayment()
+            payment = Payment(interest_amount,
+                              capital_downpayment_amount)
+            self.remaining_periods -= 1
+            self.mortgage_amount -= capital_downpayment_amount
+            self.mortgage_amount = max(self.mortgage_amount, 0)
+        else:
+            payment = Payment(0, 0)
+            self.remaining_periods -= 1
         return payment
 
 
@@ -188,7 +193,7 @@ class Scenario:
                                       + self.mortgage_overpayment_amount)
         self.real_estate\
             .mortgage.update_monthly_payment_amount(new_monthly_payment_amount)
-        while self.real_estate.mortgage.mortgage_amount > 0 and month <= max_periods:
+        while month <= max_periods:
             real_estate_price_index = get_price_index(self.growth_rate_real_estate, month)
             self.real_estate.tick_month(real_estate_price_index)
             stock_price = (get_price_index(self.growth_rate_stocks, month)
